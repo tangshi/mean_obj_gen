@@ -4,6 +4,3 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cpp
-SOURCES += obj.c
-
-HEADERS += obj.h

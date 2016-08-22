@@ -1,10 +1,10 @@
 #include <iostream>
 #include <fstream>
-#include "obj.h"
 
-int load_vertices(obj *mean_obj, const char *dir)
+
+int load_vertices(std::ofstream &ofs, const char *dir)
 {
-    std::string filename = dir + "/shapeMU.txt";
+    std::string filename = std::string(dir) + "/shapeMU.txt";
     std::ifstream ifs(filename.c_str());
 
     if (ifs.good()) {
@@ -12,10 +12,9 @@ int load_vertices(obj *mean_obj, const char *dir)
         ifs.getline(first_line, 256);
         std::cout << first_line << std::endl;
         while(!ifs.eof()) {
-            float pos[3];
-            ifs >> pos[0] >> pos[1] >> pos[2];
-            int vi = obj_add_vert(mean_obj);
-            obj_set_vert_v(mean_obj, vi, pos);
+            float x, y, z;
+            ifs >> x >> y >> z;
+            ofs << "v " << x / 100000 << ' ' << y / 100000 << ' ' << z / 100000 << '\n';
         }
         ifs.close();
         return 0;
@@ -25,21 +24,20 @@ int load_vertices(obj *mean_obj, const char *dir)
     }
 }
 
-int load_triangles(obj *mean_obj, const char *dir)
+int load_triangles(std::ofstream &ofs, const char *dir)
 {
-    std::string filename = dir + "/tl.txt";
+    std::string filename = std::string(dir) + "/tl.txt";
     std::ifstream ifs(filename.c_str());
 
     if (ifs.good()) {
         char first_line[256];
         ifs.getline(first_line, 256);
         std::cout << first_line << std::endl;
-        int si = obj_add_surf(mean_obj);
+
         while(!ifs.eof()) {
             int vi[3];
             ifs >> vi[0] >> vi[1] >> vi[2];
-            int pi = obj_add_poly(mean_obj, si);
-            obj_set_poly(mean_obj, si, pi, vi);
+            ofs << "f " << vi[0] << " " << vi[1] << " " << vi[2] << "\n";
         }
         ifs.close();
         return 0;
@@ -58,15 +56,22 @@ int main(int argc, const char *argv[])
         return -1;
     }
     else {
-        obj * mean_obj = obj_create(NULL);
+        std::string dir(argv[1]);
+        std::string objfilename = dir + "/mean.obj";
+        std::ofstream ofs(objfilename.c_str());
 
-        load_vertices(mean_obj);
+        if (ofs.good()) {
 
-        load_triangles(mean_obj);
+            load_vertices(ofs, dir.c_str());
 
-        std::string objfilename = argv[1] + "/mean.obj";
-        obj_write(mean_obj, objfilename.c_str(), NULL, 6);
+            load_triangles(ofs, dir.c_str());
 
-        return 0;
+            ofs.close();
+
+            return 0;
+        }
+        else {
+            return -2;
+        }
     }
 }
